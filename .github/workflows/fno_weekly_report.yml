@@ -1,0 +1,39 @@
+name: F&O Weekly Performance Report
+
+on:
+  schedule:
+    # Run every Friday at 4:00 PM IST (10:30 AM UTC) - After market close
+    - cron: '30 10 * * 5'
+  workflow_dispatch: # Allow manual trigger
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Download latest database
+        uses: actions/download-artifact@v4
+        with:
+          pattern: fno-trades-db-*
+          merge-multiple: true
+
+      - name: Generate weekly performance report
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python performance_tracker.py

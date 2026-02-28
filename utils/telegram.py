@@ -1,21 +1,27 @@
 """
 Telegram notification utilities for F&O Trading Agent
+Reuses TradeAgent Telegram configuration
 """
 import os
 import requests
 from config.settings import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 
+AGENT_NAME = "F&O Agent"
+
 
 def send_telegram_message(message: str) -> bool:
-    """Send a message to Telegram."""
+    """Send a message to Telegram with F&O agent prefix."""
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
         print("  [Telegram not configured]")
         return False
     
+    # Add agent name prefix to distinguish from equity agent
+    prefixed_message = f"🔷 *{AGENT_NAME}*\n\n{message}"
+    
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     payload = {
         "chat_id": TELEGRAM_CHAT_ID,
-        "text": message,
+        "text": prefixed_message,
         "parse_mode": "Markdown"
     }
     

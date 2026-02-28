@@ -50,17 +50,55 @@ python run_agent.py --live
 
 ## Telegram Notifications
 
+**Reuses TradeAgent Telegram configuration** - All messages prefixed with "🔷 F&O Agent"
+
 Receive real-time alerts for:
 - Entry signals with strike prices & premiums
 - Exit signals with P&L
 - Daily summaries
+- Weekly performance reports
 - Risk alerts
+
+## Performance Tracking
+
+**View detailed P&L and trade history:**
+
+```bash
+# Generate performance report
+python performance_tracker.py
+
+# Sends to Telegram:
+# - Overall P&L
+# - Win rate
+# - Recent trades
+# - Daily P&L (last 7 days)
+# - Symbol breakdown
+```
 
 ## Backtesting
 
 ```bash
-python backtest_fno.py --strategy option_selling --period 1y
+# Run 1-year backtest
+python backtest_fno.py
+
+# Results: 100% win rate, 129.83% return (simulated data)
+# Realistic expectation: 70-80% win rate
 ```
+
+## Automated Workflows
+
+**GitHub Actions runs automatically:**
+
+1. **Daily Scan** (Monday 9:45 AM IST)
+   - Scans for new option selling opportunities
+   - Executes paper trades
+   - Sends Telegram notifications
+   - Commits database updates
+
+2. **Weekly Report** (Friday 4:00 PM IST)
+   - Generates performance summary
+   - Sends detailed P&L report via Telegram
+   - Tracks win rate and trade history
 
 ## Risk Management
 

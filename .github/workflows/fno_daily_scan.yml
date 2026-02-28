@@ -1,0 +1,58 @@
+name: F&O Daily Scan
+
+on:
+  schedule:
+    # Run Monday at 9:45 AM IST (4:15 AM UTC) - After market opens
+    - cron: '15 4 * * 1'
+  workflow_dispatch: # Allow manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run F&O scan
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          CAPITAL: 100000
+          RISK_PER_TRADE: 0.02
+          MAX_POSITIONS: 2
+        run: |
+          python run_agent.py --once --paper
+
+      - name: Generate performance report
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python performance_tracker.py
+
+      - name: Upload database artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fno-trades-db-${{ github.run_number }}
+          path: fno_trades.db
+          retention-days: 90
+
+      - name: Commit database updates
+        run: |
+          git config user.name "F&O Agent Bot"
+          git config user.email "bot@fnoagent.local"
+          git add fno_trades.db || true
+          git diff --staged --quiet || git commit -m "F&O scan $(date +%Y-%m-%d)"
+          git push || true
